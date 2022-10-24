@@ -6,7 +6,6 @@
 import requests
 import PyPDF2
 import os
-import shutil
 
 
 def URLFormat() -> str:
