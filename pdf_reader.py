@@ -1,8 +1,5 @@
-from codecs import namereplace_errors
-from distutils.command.build_scripts import first_line_re
 import glob
 import os
-from unicodedata import name
 import camelot
 import csv
 import dataBaseManipulator
@@ -15,13 +12,28 @@ def tableTypeCheck(firstRow) -> str:
         if (cell == "But" or cell == "Ass"):
             return "goalTable"
         elif (cell == "Equipe A" or cell == "Equipe B"):
-            return "presTabel"
+            return "presTable"
         elif (cell == "Code"):
             return "foolTable"
         elif (cell == "Joueurs"):
-            return "teamTable"
+            return "awayTeamTable"
         elif (cell == "Signature"):
             return "refereeTable"
+
+
+def teamStatCheck(table1, table2, isGameWin) -> array:
+    print(table1)
+    print(table2)
+    if (isGameWin):
+        if (len(table1) > len(table2)):
+            return table1
+        else:
+            return table2
+    else:
+        if (len(table1) < len(table2)):
+            return table1
+        else:
+            return table2
 
 
 def isEmptyCheck(row) -> bool:
@@ -79,6 +91,23 @@ list_of_files = glob.glob("./feuille_de_matchs/*")
 latest_file = max(list_of_files, key=os.path.getctime)
 data = camelot.read_pdf(latest_file)
 nbTable = 0
+rempartStat = []
+awayStat = []
+inputRight = True
+
+
+while (inputRight):
+    inp = input("Did \"Les Remparts\" won the game ? (Y/N)\n")
+    if (inp == "Y" or inp == "N"):
+        if (inp == "Y"):
+            isGameWin = True
+        else:
+            isGameWin = False
+        inputRight = False
+    else:
+        print("Please enter Y or N")
+
+
 for table in data:
     fileName = './temporary/table'+str(nbTable)+'.csv'
     table.to_csv(fileName)
@@ -87,15 +116,24 @@ for table in data:
         datas.insert(0, "Les Remparts")
         datas.pop(1)
         datas = nameArrayStyle(datas)
+        rempartArrayTemp = datas
     else:
         datas.insert(0, tableTypeCheck(datas[0]))
         datas.pop(1)
     if (datas[0] == "Les Remparts"):
         dataBaseManipulator.teamTable(datas)
+    if (datas[0] == "goalTable"):
+        if (not rempartStat):
+            rempartStat = datas
+            rempartStat.pop(len(rempartStat)-1)
+        else:
+            awayStat = datas
+            awayStat.pop(len(awayStat)-1)
     for row in datas:
         print(row)
     print("\n\n\n")
     nbTable += 1
+rempartStat = teamStatCheck(rempartStat, awayStat, isGameWin)
 
-print(tableTypeCheck(datas[0]))
+
 print("there is " + str(nbTable) + " table in this pdf")

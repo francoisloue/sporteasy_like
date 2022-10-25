@@ -90,3 +90,5 @@ fastlane/test_output
 iOSInjectionProject/
 /feuille_de_matchs
 *.pdf
+/temporary
+*.csv

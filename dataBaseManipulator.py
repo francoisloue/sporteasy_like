@@ -1,5 +1,5 @@
 import sqlite3
-from tabnanny import check
+from typing import final
 
 
 def dbConnexion():
@@ -31,9 +31,27 @@ def teamTable(table):
         print("Successfuly commited every row")
         cursor.close()
     except sqlite3.Error as error:
-        print("Failed to insert datas into database ", error)
+        print("Failed to insert datas into database : ", error)
     finally:
         if con:
+            con.close()
+            print("The sqlite connection is closed !")
+
+
+def AddGoalAssist(nbGoal, nbAssist, playerID):
+    try:
+        con = dbConnexion()
+        cursor = con.cursor()
+        print("Successfuly accessed database")
+        sqlCommad = 'UPDATE Players SET  TotalGoals = TotalGoals+{}, TotalAssist = TotalAssist+{} WHERE Number="{}"'
+        cursor.execute(sqlCommad.format(nbGoal, nbAssist, playerID))
+        print("Table successfuly updated")
+        cursor.close()
+    except sqlite3.Error as error:
+        print("Failed to update datas into database : ", error)
+    finally:
+        if con:
+            con.commit()
             con.close()
             print("The sqlite connection is closed !")
 
@@ -45,8 +63,7 @@ def alreadyInDB(number) -> bool:
         cursor.execute(
             'SELECT Number FROM Players WHERE Number="%s"' % (number))
         check = cursor.fetchall()
-        print(check[0])
-        if (check[0] == "("+str(number)+", )"):
+        if (len(check) != 0):
             return True
         else:
             cursor.close()
@@ -62,7 +79,6 @@ def deleteRecord():
         sqliteConnection = dbConnexion()
         cursor = sqliteConnection.cursor()
         print("Connected to SQLite")
-
         # Deleting single record now
         sql_delete_query = """DELETE from Players"""
         cursor.execute(sql_delete_query)
@@ -78,7 +94,22 @@ def deleteRecord():
             print("the sqlite connection is closed")
 
 
-if (alreadyInDB(16)):
-    print("Already here")
-else:
-    print("The function doesn't work")
+def fetchNumber():
+    toReturn = []
+    try:
+        con = dbConnexion()
+        cursor = con.cursor()
+        cursor.execute('SELECT Number FROM Players')
+        numbers = cursor.fetchall()
+        if (len(numbers) != 0):
+            for element in numbers:
+                toReturn.append(element[0])
+            return toReturn
+        else:
+            print("There is no players to reach")
+    except sqlite3.Error as error:
+        print("Failed to select Number from sqlite table : ", error)
+    finally:
+        if con:
+            con.close()
+            print("the sqlite connection is closed")
