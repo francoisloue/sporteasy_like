@@ -1,3 +1,4 @@
+from concurrent.futures import BrokenExecutor
 import glob
 import os
 import camelot
@@ -22,8 +23,6 @@ def tableTypeCheck(firstRow) -> str:
 
 
 def teamStatCheck(table1, table2, isGameWin) -> array:
-    print(table1)
-    print(table2)
     if (isGameWin):
         if (len(table1) > len(table2)):
             return table1
@@ -59,6 +58,57 @@ def uselessRow(row) -> bool:
         if (cell == "Officiels d'équipe"):
             return True
     return False
+
+
+def playerStat(teamStats) -> array:
+    playersStats = [[0, 0, 0]]
+    alreadyInTable = False
+    for rowsTeam in teamStats[1:]:
+        if (rowsTeam[1] != ''):
+            alreadyInTable = False
+            goal = int(rowsTeam[1])
+            print("new goal found : " + str(goal))
+            for rowsPlayers in playersStats:
+                if goal in rowsPlayers:
+                    rowsPlayers[0] += 1
+                    print("Goal added")
+                    alreadyInTable = True
+                    break
+                else:
+                    continue
+            if not alreadyInTable:
+                try:
+                    newLayer = [0, 0, goal]
+                    newLayer[0] += 1
+                    playersStats.append(newLayer)
+                except TypeError as err:
+                    print(err)
+                print("new layer created for a goal")
+                alreadyInTable = False
+        if (rowsTeam[2] != ''):
+            alreadyInTable = False
+            assist = int(rowsTeam[2])
+            print("new assist found : " + str(assist))
+            for rowsPlayers in playersStats:
+                if assist in rowsPlayers:
+                    rowsPlayers[1] += 1
+                    print("assist Added")
+                    alreadyInTable = True
+                    break
+                else:
+                    continue
+            if not alreadyInTable:
+                print("new row in creation")
+                try:
+                    newLayer = [0, 0, assist]
+                    newLayer[1] += 1
+                    playersStats.append(newLayer)
+                except TypeError as err:
+                    print(err)
+                print("new layer created for an assist")
+                alreadyInTable = False
+    playersStats.pop(0)
+    return playersStats
 
 
 def tableCreater(file) -> array:
@@ -121,7 +171,7 @@ for table in data:
         datas.insert(0, tableTypeCheck(datas[0]))
         datas.pop(1)
     if (datas[0] == "Les Remparts"):
-        dataBaseManipulator.teamTable(datas)
+        dataBaseManipulator.AddTeamTableInDb(datas)
     if (datas[0] == "goalTable"):
         if (not rempartStat):
             rempartStat = datas
@@ -134,6 +184,7 @@ for table in data:
     print("\n\n\n")
     nbTable += 1
 rempartStat = teamStatCheck(rempartStat, awayStat, isGameWin)
-
+playersStats = playerStat(rempartStat)
+dataBaseManipulator.AddGoalAssistInDB(playersStats)
 
 print("there is " + str(nbTable) + " table in this pdf")

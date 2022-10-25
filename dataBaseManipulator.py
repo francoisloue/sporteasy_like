@@ -7,7 +7,7 @@ def dbConnexion():
     return con
 
 
-def teamTable(table):
+def AddTeamTableInDb(table):
     try:
         con = dbConnexion()
         cursor = con.cursor()
@@ -38,13 +38,15 @@ def teamTable(table):
             print("The sqlite connection is closed !")
 
 
-def AddGoalAssist(nbGoal, nbAssist, playerID):
+def AddGoalAssistInDB(playerStat):
     try:
         con = dbConnexion()
         cursor = con.cursor()
         print("Successfuly accessed database")
         sqlCommad = 'UPDATE Players SET  TotalGoals = TotalGoals+{}, TotalAssist = TotalAssist+{} WHERE Number="{}"'
-        cursor.execute(sqlCommad.format(nbGoal, nbAssist, playerID))
+        for row in playerStat:
+            commandTempon = sqlCommad.format(row[0], row[1], row[2])
+            cursor.execute(commandTempon)
         print("Table successfuly updated")
         cursor.close()
     except sqlite3.Error as error:
@@ -113,3 +115,6 @@ def fetchNumber():
         if con:
             con.close()
             print("the sqlite connection is closed")
+
+
+deleteRecord()
